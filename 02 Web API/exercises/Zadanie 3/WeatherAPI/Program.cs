@@ -1,6 +1,7 @@
 using System.Net.Http;
 using System.Text.Json.Serialization;
 using System.Text.Json;
+using Microsoft.AspNetCore.Http;
 
 
 
@@ -19,8 +20,16 @@ var summaries = new[]
 	"Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
 };
 
-app.MapGet("/weather", async Task<IResult> () =>
+
+/*
+	Returns the weather forecast for the specified city for the next 3 hours. 
+	Accepts the "?city=name" parameter, which defines the name of the city for which the weather forecast is to be retrieved.
+ */
+app.MapGet("/weatherforecast", async Task<IResult> (string? city) =>
 {
+	if (city == null) {
+		return Results.BadRequest("city param is requierd.");
+	}
 	//Lat & lon for Warsaw, 
 	
 	var handler = new HttpClientHandler();
@@ -31,25 +40,49 @@ app.MapGet("/weather", async Task<IResult> () =>
 	/*
 		Paste your openwheathermap API key to the variable below.
 	 */
-	string apiKey = "YOUR_API_KEY_GOES_HERE";
-	using HttpResponseMessage response = await httpClient.GetAsync($"data/2.5/weather?lat=52.24749554389182&lon=20.991198645507612&units=metric&appid={apiKey}");
+	string apiKey = "PASTE_YOUR_API_KEY_HERE";
+	using HttpResponseMessage response = await httpClient.GetAsync($"data/2.5/forecast?q={city}&units=metric&lang=pl&appid={apiKey}");
 	var json = await response.Content.ReadAsStringAsync();
-	var weatherData = JsonSerializer.Deserialize<WeatherResponse>(json, new JsonSerializerOptions
-	{ 
+	//return Results.Ok(json);
+	var weatherData = JsonSerializer.Deserialize<WeatherForecast>(json, new JsonSerializerOptions
+	{
 		PropertyNameCaseInsensitive = true
 	});
-	if (!response.IsSuccessStatusCode) {
-		return Results.StatusCode((int)response.StatusCode);
-	}
-	return Results.Ok(new 
+	if (!response.IsSuccessStatusCode)
 	{
-		WeatherConditions = weatherData.Weather[0].Description,
-		Temperature = weatherData.Main.Temp,
-		RealFeel = weatherData.Main.FeelsLike,
-		MinTemperature = weatherData.Main.TempMin,
-		MaxTemperature = weatherData.Main.TempMax,
-		Pressure = weatherData.Main.Pressure,
-		Humidity = weatherData.Main.Humidity
+		return Results.Problem(
+			statusCode: (int)response.StatusCode
+			);
+	}
+
+	ForecastItem firstWeatherData;
+	if (weatherData == null || weatherData.Forecasts == null)
+	{
+		return Results.Problem(
+			detail: "API returned invalid forecast array. Check if provided city name is valid!",
+			statusCode: 502
+			);
+	}
+	else {
+		firstWeatherData = weatherData.Forecasts[0];
+	}
+	
+	
+
+	return Results.Ok(new
+	{
+			ForecastTime = DateTimeOffset.FromUnixTimeSeconds(firstWeatherData.UnixDateTime).LocalDateTime,
+			Temp = firstWeatherData.Main.Temp,
+			FeelsLike = firstWeatherData.Main.FeelsLike,
+			TempMin = firstWeatherData.Main.TempMin,
+			TempMax = firstWeatherData.Main.TempMax,
+			Pressure = firstWeatherData.Main.Pressure,
+			Humidity = firstWeatherData.Main.Humidity,
+			Description = firstWeatherData.Weather[0].Description,
+			WindSpeed = firstWeatherData.Wind.Speed,
+			Visibility = firstWeatherData.Visibility,
+			Rain3hVolume = firstWeatherData.Rain?.Volume3h,
+			Snow3hVolume = firstWeatherData.Snow?.Volume3h
 	});
 });
 
@@ -58,54 +91,62 @@ app.MapGet("/weather", async Task<IResult> () =>
 
 app.Run();
 
-internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
+public class WeatherForecast {
+	[JsonPropertyName("list")]
+	public List<ForecastItem> Forecasts { get; set; }
+}
+public class ForecastItem
 {
-	public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+	[JsonPropertyName("dt")]
+	public long UnixDateTime { get; set; }
+	public Main Main { get; set; }
+	public List<Weather> Weather { get; set; }
+	public Wind Wind { get; set; }
+	public int Visibility { get; set; }
+
+	public Rain Rain { get; set; }
+	public Snow Snow { get; set; }
 }
 
-public class WeatherResponse { 
-	public WeatherData[] Weather { get; set; }
-	public MainData Main { get; set; }
-}
+public class Main
+{
+	public double Temp { get; set; }
 
-/*
-[{
-	"id":300,
-	"main":"Drizzle",
-	"description":"light intensity drizzle",
-	"icon":"09n"
-}]
- */
-public class WeatherData{ 
-	public int Id { get; set; }
-	public string Main { get; set; }
-	public string Description { get; set; }
-	public string Icon { get; set; }
-}
-/*
-	{
-		"temp":275.54,
-		"feels_like":272.07,
-		"temp_min":274.63,
-		"temp_max":276.38,
-		"pressure":1017,
-		"humidity":90,
-		"sea_level":1017,
-		"grnd_level":1006
-	}
- */
-public class MainData { 
-	public float Temp { get; set; }
 	[JsonPropertyName("feels_like")]
-	public float FeelsLike { get; set; }
+	public double FeelsLike { get; set; }
+
 	[JsonPropertyName("temp_min")]
-	public float TempMin { get; set; }
+	public double TempMin { get; set; }
+
 	[JsonPropertyName("temp_max")]
-	public float TempMax { get; set; }
-	public float Pressure { get; set; }
-	public float Humidity { get; set; }
-	[JsonPropertyName("sea_level")]
-	public float SeaLevel { get; set; }
-	[JsonPropertyName("grnd_level")]
-	public float GrndLevel { get; set; }
+	public double TempMax { get; set; }
+
+	public int Pressure { get; set; }
+
+	public int Humidity { get; set; }
 }
+
+public class Weather
+{
+	public string Description { get; set; }
+}
+
+
+public class Wind
+{
+	public double Speed { get; set; }
+}
+
+public class Rain
+{
+	[JsonPropertyName("3h")]
+	public double? Volume3h { get; set; }
+}
+
+public class Snow
+{
+	[JsonPropertyName("3h")]
+	public double? Volume3h { get; set; }
+}
+
+
