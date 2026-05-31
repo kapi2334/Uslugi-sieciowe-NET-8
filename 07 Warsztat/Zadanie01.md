@@ -273,7 +273,7 @@ Testowanie jest kluczowym elementem procesu deweloperskiego, a narzędzia takie 
 Po wstępnych testach i potwierdzeniu, że podstawowa funkcjonalność Twojego API działa poprawnie, możesz rozważyć kilka kierunków dla dalszego rozwoju i ulepszenia Twojego projektu.
 
 #### Dodawanie Nowych Funkcjonalności
-
+HERE
 1. **Filtrowanie Postów**
    - Rozszerz repozytorium o metodę umożliwiającą filtrowanie postów według różnych kryteriów, np. daty publikacji, słów kluczowych w tytule lub treści.
 
