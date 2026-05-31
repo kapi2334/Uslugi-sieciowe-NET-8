@@ -1,12 +1,18 @@
-using System.Net.Http;
-using System.Text.Json.Serialization;
-using System.Text.Json;
 using Microsoft.AspNetCore.Http;
+using Serilog;
+using System.Net.Http;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using WeatherAPI.Services;
 
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+//serilog
+
+builder.Host.UseSerilog((hostingContext, loggerConfiguration) => loggerConfiguration
+    .ReadFrom.Configuration(hostingContext.Configuration));
 
 //swagger
 
