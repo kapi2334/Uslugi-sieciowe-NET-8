@@ -1,5 +1,6 @@
-﻿using BlogCMS.Models; 
-using BlogCMS.Interfaces;
+﻿using BlogCMS.Interfaces;
+using BlogCMS.Models; 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -7,18 +8,18 @@ using System.Threading.Tasks;
 [ApiController]
 public class PostsController : ControllerBase
 {
-    private readonly IRepository<Post> _postRepository;
+    private readonly IRepository<Post> _loginRepository;
 
-    public PostsController(IRepository<Post> postRepository)
+    public PostsController(IRepository<Post> _loginRepository)
     {
-        _postRepository = postRepository;
+        _loginRepository = _loginRepository;
     }
 
     // GET: api/posts
     [HttpGet]
     public async Task<IActionResult> GetAllPosts()
     {
-        var posts = await _postRepository.GetAllAsync();
+        var posts = await _loginRepository.GetAllAsync();
         return Ok(posts);
     }
 
@@ -26,7 +27,7 @@ public class PostsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetPostById(int id)
     {
-        var post = await _postRepository.GetByIdAsync(id);
+        var post = await _loginRepository.GetByIdAsync(id);
         if (post == null)
         {
             return NotFound();
@@ -36,6 +37,7 @@ public class PostsController : ControllerBase
 
     // POST: api/posts
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreatePost([FromBody] Post post)
     {
         if (!ModelState.IsValid)
@@ -43,12 +45,13 @@ public class PostsController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        var newPostId = await _postRepository.AddAsync(post);
+        var newPostId = await _loginRepository.AddAsync(post);
         return CreatedAtAction(nameof(GetPostById), new { id = newPostId }, post);
     }
 
     // PUT: api/posts/{id}
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdatePost(int id, [FromBody] Post post)
     {
         if (id != post.Id)
@@ -56,7 +59,7 @@ public class PostsController : ControllerBase
             return BadRequest();
         }
 
-        var result = await _postRepository.UpdateAsync(post);
+        var result = await _loginRepository.UpdateAsync(post);
         if (!result)
         {
             return NotFound();
@@ -67,10 +70,11 @@ public class PostsController : ControllerBase
 
     // DELETE: api/posts/{id}
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeletePost(int id)
     {
-        var post = await _postRepository.GetByIdAsync(id);
-        var result = await _postRepository.DeleteAsync(post);
+        var post = await _loginRepository.GetByIdAsync(id);
+        var result = await _loginRepository.DeleteAsync(post);
         if (!result)
         {
             return NotFound();

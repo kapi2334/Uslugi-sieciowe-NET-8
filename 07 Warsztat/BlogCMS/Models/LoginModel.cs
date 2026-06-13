@@ -1,7 +1,10 @@
-﻿namespace BlogCMS.Models
+﻿using BlogCMS.Interfaces;
+
+namespace BlogCMS.Models
 {
-    public class LoginModel
+    public class LoginModel: IEntity
     {
+        public int Id { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
         public string Role { get; set; }

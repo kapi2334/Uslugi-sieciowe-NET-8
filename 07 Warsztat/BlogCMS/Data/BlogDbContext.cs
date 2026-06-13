@@ -11,5 +11,6 @@ namespace BlogCMS.Data
         }
 
         public DbSet<Post> Posts { get; set; }
+        public DbSet<LoginModel> RegisteredUsers { get; set; }
     }
 }
