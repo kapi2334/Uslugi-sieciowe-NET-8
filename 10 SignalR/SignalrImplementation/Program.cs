@@ -2,6 +2,15 @@ using SignalrImplementation.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy", builder =>
+        builder.WithOrigins("https://localhost:5173") // Specify the allowed origin(s)
+               .AllowAnyMethod()
+               .AllowAnyHeader()
+               .AllowCredentials()); // Necessary for SignalR
+});
+
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddSignalR();
@@ -16,7 +25,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
+app.UseCors("CorsPolicy");
 app.UseRouting();
 
 app.UseAuthorization();

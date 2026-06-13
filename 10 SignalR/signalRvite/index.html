@@ -6,6 +6,7 @@
   <link rel="stylesheet" type="text/css" href="css/style.css">
   <link href="https://fonts.googleapis.com/css?family=Poppins" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.js" integrity="sha512-pn4yorWMbHHvdsldBpkTNjJaoadsoYs/ZgOYHSHUtivn1j/Ddgdnlgt1egjQcP8j4atM3TR+tgIqgjhi5Z11KQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  
   <title>Adventure blog</title>
 </head>
 <body>
@@ -33,7 +34,13 @@
     </header>
   </nav>
 
+
+
+
 <!-- Etap II - Nagłówek & O mnie -->	
+
+
+
 
   <section>
     <div class="about-blog">
@@ -61,6 +68,37 @@
       </div>
     </div>
   </section>
+  
+     <section id="signalR" class="gallery-container">
+  <div class="container">
+    <div class="row p-1">
+        <div class="col-1">User</div>
+        <div class="col-5"><input type="text" id="userInput" /></div>
+    </div>
+    <div class="row p-1">
+        <div class="col-1">Message</div>
+        <div class="col-5"><input type="text" class="w-100" id="messageInput" /></div>
+    </div>
+    <div class="row p-1">
+        <div class="col-6 text-end">
+            <input type="button" id="sendButton" value="Send Message" />
+        </div>
+    </div>
+    <div class="row p-1">
+        <div class="col-6">
+            <hr />
+        </div>
+    </div>
+    <div class="row p-1">
+        <div class="col-6">
+            <ul id="messagesList"></ul>
+        </div>
+    </div>
+</div>
+<script src="chat.js"></script>
+</section>
+  
+
 
 <!--    Etap III - Pierwszy artykuł    -->
 
